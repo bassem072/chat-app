@@ -14,7 +14,6 @@ const schema = new Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is a required field"],
     },
     bio: {
       type: String,

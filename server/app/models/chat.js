@@ -2,9 +2,8 @@ import { Schema, model } from "mongoose";
 
 const schema = new Schema(
   {
-    chatName: {
+    name: {
       type: String,
-      required: [true, "chatName is required field"],
       maxlength: 200,
       trim: true,
     },

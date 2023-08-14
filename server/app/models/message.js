@@ -21,6 +21,12 @@ const schema = new Schema(
     fileUrl: {
       type: String,
     },
+    seen: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
