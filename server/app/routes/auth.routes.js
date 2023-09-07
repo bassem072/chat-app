@@ -34,15 +34,14 @@ const authRoutes = (app) => {
 
   app.post(
     "/api/login",
-    [checkRequiredParams(["email", "password", "remember"])],
+    [checkRequiredParams(["email", "password"])],
     login
   );
 
-  app.post("/api/logout", [checkRequiredParams(["refreshToken"])], logout);
+  app.post("/api/logout", logout);
 
   app.post(
     "/api/refresh",
-    [checkRequiredParams(["refreshToken"])],
     refreshAccessToken
   );
 };

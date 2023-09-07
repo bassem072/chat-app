@@ -30,10 +30,19 @@ export const register = (req, res) => {
       const accessToken = jwt.sign({ id: newUser._id }, authConfig.secret, {
         expiresIn: authConfig.jwtExpiration,
       });
-      
+
       console.log(2);
       const refreshToken = await createRefreshToken(newUser._id, false);
       console.log(3);
+
+      const duration = (authConfig.jwtRefreshExpiration - 60) * 1000;
+
+      res.cookie("jwt", refreshToken, {
+        httpOnly: true,
+        sameSite: "None",
+        secure: false,
+        maxAge: duration,
+      });
 
       return res.status(200).json({
         message: "register_successfully",
@@ -47,7 +56,6 @@ export const register = (req, res) => {
           profileImage: newUser.profileImage,
         },
         accessToken,
-        refreshToken,
       });
     })
     .catch((err) => {
@@ -68,7 +76,8 @@ export const login = (req, res) => {
 
       const isMatch = bcrypt.compareSync(password, user.password);
 
-      if(!isMatch) return res.status(401).json({ message: "password_not_match" });
+      if (!isMatch)
+        return res.status(401).json({ message: "password_not_match" });
 
       const accessToken = jwt.sign({ id: user._id }, authConfig.secret, {
         expiresIn: authConfig.jwtExpiration,
@@ -76,18 +85,31 @@ export const login = (req, res) => {
 
       const refreshToken = await createRefreshToken(user._id, remember);
 
+      const duration =
+        ((remember
+          ? authConfig.jwtRefreshExpirationLong
+          : authConfig.jwtRefreshExpiration) -
+          60) *
+        1000;
+
+      res.cookie("jwt", refreshToken, {
+        httpOnly: true,
+        sameSite: "None",
+        secure: false,
+        maxAge: duration,
+      });
+
       return res.status(200).json({
         user: {
           id: user._id,
-          first_name: user.first_name,
-          last_name: user.last_name,
+          name: user.name,
+          bio: user.bio,
           email: user.email,
           gender: user.gender,
           birthday: user.birthdate,
           role: user.role,
         },
         accessToken,
-        refreshToken: refreshToken,
         message: "login_successfully",
       });
     })
@@ -97,64 +119,83 @@ export const login = (req, res) => {
 };
 
 export const logout = (req, res) => {
-  const { refreshToken: requestToken } = req.body;
-  RefreshToken.findOneAndDelete({ token: requestToken })
-    .exec()
-    .then((token) => {
-      return res
-        .status(200)
-        .json({ message: "refresh_token_deleted_successfully" });
-    })
-    .catch((err) => {
-      return res.status(404).json({ message: "refresh_token_not_found" });
-    });
+  if (req.cookies?.jwt) {
+    RefreshToken.findOneAndDelete({ token: req.cookies.jwt })
+      .exec()
+      .then((token) => {
+        return res
+          .status(200)
+          .json({ message: "refresh_token_deleted_successfully" });
+      })
+      .catch((err) => {
+        return res.status(406).json({ message: "refresh_token_not_found" });
+      });
+  } else {
+    return res.status(406).json({ message: "unauthorized" });
+  }
 };
 
 export const refreshAccessToken = async (req, res) => {
-  const { refreshToken: requestToken } = req.body;
-  RefreshToken.findOne({ token: requestToken })
-    .then((refreshToken) => {
-      if (!verifyExpirationRefreshToken(refreshToken)) {
-        RefreshToken.findByIdAndDelete(refreshToken._id)
-          .exec()
-          .then((_) => {
-            return res.status(400).json({ message: "Refresh_token_expired" });
-          })
-          .catch((_) => {
-            return res.status(400).json({ message: "Refresh_token_expired" });
-          });
-      }
-
-      const expiryDate = expireDate(refreshToken.remember);
-
-      refreshToken.expiryDate = expiryDate;
-
-      const accessToken = jwt.sign(
-        { id: refreshToken.user },
-        authConfig.secret,
-        {
-          expiresIn: authConfig.jwtExpiration,
+  console.log(req.cookies);
+  if (req.cookies?.jwt) {
+    RefreshToken.findOne({ token: req.cookies.jwt })
+      .then((refreshToken) => {
+        if (!verifyExpirationRefreshToken(refreshToken)) {
+          RefreshToken.findByIdAndDelete(refreshToken._id)
+            .exec()
+            .then((_) => {
+              return res.status(400).json({ message: "Refresh_token_expired" });
+            })
+            .catch((_) => {
+              return res.status(400).json({ message: "Refresh_token_expired" });
+            });
         }
-      );
 
-      refreshToken
-        .save()
-        .then((newRefreshToken) => {
-          return res.status(200).json({
-            accessToken: accessToken,
-            refreshToken: newRefreshToken.token,
+        const expiryDate = expireDate(refreshToken.remember);
+
+        refreshToken.expiryDate = expiryDate;
+
+        const accessToken = jwt.sign(
+          { id: refreshToken.user },
+          authConfig.secret,
+          {
+            expiresIn: authConfig.jwtExpiration,
+          }
+        );
+
+        refreshToken
+          .save()
+          .then((newRefreshToken) => {
+            const duration =
+              ((newRefreshToken.remember
+                ? authConfig.jwtRefreshExpirationLong
+                : authConfig.jwtRefreshExpiration) -
+                60) *
+              1000;
+
+            res.cookie("jwt", req.cookies.jwt, {
+              httpOnly: true,
+              sameSite: "None",
+              secure: false,
+              maxAge: duration,
+            });
+            return res.status(200).json({
+              accessToken: accessToken,
+            });
+          })
+          .catch(() => {
+            return res.status(200).json({
+              accessToken: accessToken,
+              refreshToken: refreshToken.token,
+            });
           });
-        })
-        .catch(() => {
-          return res.status(200).json({
-            accessToken: accessToken,
-            refreshToken: refreshToken.token,
-          });
-        });
-    })
-    .catch((err) => {
-      return res
-        .status(404)
-        .json({ message: "refresh_token_not_found", error: err });
-    });
+      })
+      .catch((err) => {
+        return res
+          .status(404)
+          .json({ message: "refresh_token_not_found", error: err });
+      });
+  } else {
+    return res.status(406).json({ message: "unauthorized" });
+  }
 };

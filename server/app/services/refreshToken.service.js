@@ -22,7 +22,6 @@ export const createRefreshToken = async (user, remember) => {
 
 export const verifyExpirationRefreshToken = (token) => {
   const currentDate = new Date();
-  //console.log(currentDate > token.expiryDate);
   return token.expiryDate.getTime() > currentDate.getTime();
 };
 
