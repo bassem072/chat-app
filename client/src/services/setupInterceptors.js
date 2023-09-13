@@ -8,7 +8,6 @@ const setup = (store) => {
   axiosInstance.interceptors.request.use(
     (config) => {
       const token = TokenService.getLocalAccessToken();
-      console.log("This is " + token);
       if (token) {
         config.headers["x-access-token"] = token;
       }
@@ -21,6 +20,7 @@ const setup = (store) => {
 
   axiosInstance.interceptors.response.use(
     (response) => {
+      console.log("res");
       return response;
     },
     async (error) => {
@@ -46,6 +46,7 @@ const setup = (store) => {
 
             return axiosInstance(originalConfig);
           } else if (res.status === 406) {
+            console.log("yes");
             dispatch(logout());
             window.location.reload();
             return Promise.reject(error);
@@ -53,6 +54,7 @@ const setup = (store) => {
 
           
         } catch (err) {
+          console.log(err);
           dispatch(logout());
           window.location.reload();
           return Promise.reject(err);

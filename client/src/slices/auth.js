@@ -36,7 +36,7 @@ export const login = createAsyncThunk(
   async ({ email, password, remember }, thunkAPI) => {
     try {
       const data = await authService.login(email, password, remember);
-      console.log("bassem", data);
+      console.log("bassem", email, password, remember);
       return { user: data };
     } catch (error) {
       const message =
@@ -45,6 +45,7 @@ export const login = createAsyncThunk(
           error.response.data.message) ||
         error.message ||
         error.toString();
+      console.log("from slice ", message);
       thunkAPI.dispatch(setMessage(message));
       return thunkAPI.rejectWithValue();
     }

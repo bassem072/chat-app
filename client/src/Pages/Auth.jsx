@@ -1,7 +1,7 @@
 import React from "react";
-import LoginForm from "../Components/Auth/LoginForm";
-import RegisterForm from "../Components/Auth/RegisterForm";
-import Panel from "../Components/Auth/Panel";
+import LoginForm from "../Components/ui/Auth/LoginForm";
+import RegisterForm from "../Components/ui/Auth/RegisterForm";
+import Panel from "../Components/ui/Auth/Panel";
 import login from "../assets/images/login.svg";
 import register from "../assets/images/register.svg";
 

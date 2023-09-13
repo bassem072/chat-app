@@ -5,6 +5,9 @@ import Auth from "./Pages/Auth";
 import AuthRoutes from "./routes/AuthRoutes";
 import GuestRoutes from "./routes/GuestRoutes";
 import User from "./Pages/User";
+import { ToastContainer } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
 //import Chat from "./Pages/Chat";
 
 function App() {
@@ -12,12 +15,7 @@ function App() {
     <div className="flex flex-col font-archivo text-paragraph items-center justify-center w-full min-h-screen max-h-screen flex-1 text-center bg-primary">
       <Routes>
         <Route path="/" element={<AuthRoutes />}>
-          <Route
-            index
-            element={
-              <User />
-            }
-          />
+          <Route index element={<User />} />
         </Route>
         <Route
           path="/auth"
@@ -28,6 +26,18 @@ function App() {
           }
         />
       </Routes>
+      <ToastContainer
+        position="bottom-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </div>
   );
 }

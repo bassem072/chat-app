@@ -35,12 +35,12 @@ code {
 .c:before {
   content: "";
   position: absolute;
-  height: calc(2.2 * 100vh);
+  height: 2200px;
   width: 2000px;
   top: -10%;
   right: 48%;
   transform: translateY(-50%);
-  background-image: linear-gradient(-45deg, rgba(117, 83, 178, .5) 0%, rgb(117, 83, 178) 100%);
+  background-image: linear-gradient(-45deg, rgba(117, 83, 178, .5) 0%, #7553b2 100%);
   transition: 1.8s ease-in-out;
   border-radius: 50%;
   z-index: 6;
@@ -57,4 +57,11 @@ select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
   -webkit-text-fill-color: #EEEFF6;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+::-moz-selection { /* Code for Firefox */
+  color: #7553b2;
+}
+input::selection {
+  color: #7553b2;
 }

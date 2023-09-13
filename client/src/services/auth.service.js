@@ -19,8 +19,7 @@ const register = async (email, password, name, bio, gender, birthday) => {
         console.log("User Added");
       }
       return response.data;
-    })
-    .catch((err) => {});
+    });
 };
 
 const login = async (email, password, remember) => {
@@ -38,8 +37,7 @@ const login = async (email, password, remember) => {
         TokenService.setUser(response.data);
       }
       return response.data;
-    })
-    .catch((err) => {});
+    });
 };
 
 const logout = async () => {
@@ -53,7 +51,8 @@ const logout = async () => {
       return response.data;
     })
     .catch((err) => {
-      if(err.response.status === 400) {
+      console.log(err.response);
+      if (err.response.status === 400 || err.response.status === 406) {
         TokenService.removeUser();
       }
     });
