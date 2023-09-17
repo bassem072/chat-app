@@ -1,11 +1,10 @@
 import express from "express";
-import mongoose from "mongoose";
 import "./app/config/dotenv.config.js";
 import bodyParser from "body-parser";
 import cors from "cors";
+import cookieParser from 'cookie-parser';
 import dbConfig from "./db.js";
 import authRoutes from "./app/routes/auth.routes.js";
-import cookieParser from 'cookie-parser'
 
 const PORT = process.env.PORT || 5000;
 const app = express();

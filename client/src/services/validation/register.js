@@ -28,12 +28,12 @@ export default function validate(values) {
       } else if (values.password !== values.repeatPassword) {
         errors.repeatPassword = "Two passwords does not match";
       }
-
+      
       const date = new Date(
-        values.year + "-" + (values.month + 1) + "-" + values.day
+        values.year + "-" + (+values.month + 1) + "-" + values.day
       );
 
-      if (!(date.getDate() === Number(values.day))) {
+      if (date.getDate() !== Number(values.day)) {
         errors.date = "Invalid Date";
       }
 

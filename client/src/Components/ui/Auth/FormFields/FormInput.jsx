@@ -50,7 +50,7 @@ export default function FormInput({
           </button>
         ) : null}
       </div>
-      <div className="max-w-sm w-full h-5 text-sm text-red-600">
+      <div className="max-w-sm w-full h-3 text-sm text-red-600">
         {condition ? "* " + error : null}
       </div>
     </>

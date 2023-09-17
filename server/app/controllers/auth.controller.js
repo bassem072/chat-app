@@ -8,6 +8,7 @@ import {
   verifyExpirationRefreshToken,
 } from "../services/refreshToken.service.js";
 import { expireDate } from "../helpers/expireDate.helper.js";
+import { successfullyAuth } from "../responses/authResponse.js";
 
 export const register = (req, res) => {
   const { name, bio, email, password, gender, birthdate } = req.body;
@@ -26,37 +27,7 @@ export const register = (req, res) => {
   user
     .save()
     .then(async (newUser) => {
-      console.log(newUser._id, authConfig.secret, authConfig.jwtExpiration);
-      const accessToken = jwt.sign({ id: newUser._id }, authConfig.secret, {
-        expiresIn: authConfig.jwtExpiration,
-      });
-
-      console.log(2);
-      const refreshToken = await createRefreshToken(newUser._id, false);
-      console.log(3);
-
-      const duration = (authConfig.jwtRefreshExpiration - 60) * 1000;
-
-      res.cookie("jwt", refreshToken, {
-        httpOnly: true,
-        sameSite: "None",
-        secure: false,
-        maxAge: duration,
-      });
-
-      return res.status(200).json({
-        message: "register_successfully",
-        user: {
-          id: newUser._id,
-          name: newUser.name,
-          bio: newUser.bio,
-          email: newUser.email,
-          gender: newUser.gender,
-          birthdate: newUser.birthdate,
-          profileImage: newUser.profileImage,
-        },
-        accessToken,
-      });
+      successfullyAuth(res, newUser, false);
     })
     .catch((err) => {
       return res.status(400).json({ message: "user_not_saved", error: err });
@@ -79,39 +50,21 @@ export const login = (req, res) => {
       if (!isMatch)
         return res.status(401).json({ message: "password_not_match" });
 
-      const accessToken = jwt.sign({ id: user._id }, authConfig.secret, {
-        expiresIn: authConfig.jwtExpiration,
-      });
+      successfullyAuth(res, user, remember);
+    })
+    .catch((err) => {
+      res.status(500).json({ message: err.message });
+    });
+};
 
-      const refreshToken = await createRefreshToken(user._id, remember);
+export const socialLogin = (req, res) => {
+  const { email } = req.body;
 
-      const duration =
-        ((remember
-          ? authConfig.jwtRefreshExpirationLong
-          : authConfig.jwtRefreshExpiration) -
-          60) *
-        1000;
+  User.findOne({ email: email })
+    .then(async (user) => {
+      if (!user) return res.status(404).json({ message: "user_not_found" });
 
-      res.cookie("jwt", refreshToken, {
-        httpOnly: true,
-        sameSite: "None",
-        secure: false,
-        maxAge: duration,
-      });
-
-      return res.status(200).json({
-        user: {
-          id: user._id,
-          name: user.name,
-          bio: user.bio,
-          email: user.email,
-          gender: user.gender,
-          birthday: user.birthdate,
-          role: user.role,
-        },
-        accessToken,
-        message: "login_successfully",
-      });
+      successfullyAuth(res, user, false);
     })
     .catch((err) => {
       res.status(500).json({ message: err.message });
@@ -136,7 +89,6 @@ export const logout = (req, res) => {
 };
 
 export const refreshAccessToken = async (req, res) => {
-  console.log(req.cookies);
   if (req.cookies?.jwt) {
     RefreshToken.findOne({ token: req.cookies.jwt })
       .then((refreshToken) => {

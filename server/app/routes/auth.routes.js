@@ -3,6 +3,7 @@ import {
   logout,
   refreshAccessToken,
   register,
+  socialLogin,
 } from "../controllers/auth.controller.js";
 import { checkRequiredParams } from "../middleware/existingParams.middleware.js";
 import { checkDuplicateEmail } from "../middleware/verifySignUp.middleware.js";
@@ -36,6 +37,12 @@ const authRoutes = (app) => {
     "/api/login",
     [checkRequiredParams(["email", "password"])],
     login
+  );
+
+  app.post(
+    "/api/social",
+    [checkRequiredParams(["email"])],
+    socialLogin
   );
 
   app.post("/api/logout", logout);

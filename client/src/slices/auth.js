@@ -7,16 +7,9 @@ const user = JSON.parse(localStorage.getItem("user"));
 
 export const register = createAsyncThunk(
   "/register",
-  async ({ email, password, name, bio, gender, birthday }, thunkAPI) => {
+  async (userDate, thunkAPI) => {
     try {
-      const data = await authService.register(
-        email,
-        password,
-        name,
-        bio,
-        gender,
-        birthday
-      );
+      const data = await authService.register(userDate);
       return { user: data };
     } catch (error) {
       const message =
@@ -36,7 +29,6 @@ export const login = createAsyncThunk(
   async ({ email, password, remember }, thunkAPI) => {
     try {
       const data = await authService.login(email, password, remember);
-      console.log("bassem", email, password, remember);
       return { user: data };
     } catch (error) {
       const message =
@@ -45,7 +37,25 @@ export const login = createAsyncThunk(
           error.response.data.message) ||
         error.message ||
         error.toString();
-      console.log("from slice ", message);
+      thunkAPI.dispatch(setMessage(message));
+      return thunkAPI.rejectWithValue();
+    }
+  }
+);
+
+export const socialLogin = createAsyncThunk(
+  "/social",
+  async ({ email }, thunkAPI) => {
+    try {
+      const data = await authService.socialLogin(email);
+      return { user: data };
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
       thunkAPI.dispatch(setMessage(message));
       return thunkAPI.rejectWithValue();
     }
@@ -63,6 +73,7 @@ const initialState = {
   isRegister: false,
   isAuthenticated: false,
   user: user ?? null,
+  registerData: {},
 };
 
 const auth = createSlice({
@@ -72,8 +83,16 @@ const auth = createSlice({
     refreshToken: (state, action) => {
       state.user = { ...state.user, accessToken: action.payload };
     },
-    register: (state, action) => {
+    changeRegister: (state, action) => {
       state.isRegister = action.payload;
+    },
+    changeRegisterData: (state, action) => {
+      console.log("this is ", action.payload);
+      state.registerData = {
+        ...state.registerData,
+        ...action.payload,
+      };
+      console.log("this is ", state.registerData);
     },
   },
   extraReducers: (builder) => {
@@ -104,6 +123,19 @@ const auth = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload.user;
       })
+      .addCase(socialLogin.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(socialLogin.rejected, (state) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+      })
+      .addCase(socialLogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+      })
       .addCase(logout.pending, (state) => {
         state.isLoading = true;
       })
@@ -118,6 +150,6 @@ const auth = createSlice({
   },
 });
 
-export const { refreshToken } = auth.actions;
+export const { refreshToken, changeRegister, changeRegisterData } = auth.actions;
 
 export default auth.reducer;

@@ -18,16 +18,16 @@ export default function LoginForm() {
   const dispatch = useDispatch();
   const location = useLocation();
   const { message } = useSelector((state) => state.message);
-  const { isLoading } = useSelector((state) => state.auth);
+  const { isLoading, isRegister } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (message) {
+    if (message && !isRegister) {
       toast(message, {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }
     dispatch(clearMessage());
-  }, [dispatch, message]);
+  }, [dispatch, isRegister, message]);
 
   const formik = useFormik({
     initialValues: {
@@ -55,7 +55,12 @@ export default function LoginForm() {
   });
 
   return (
-    <div className="z-[2] col-[1/2] row-[1/2]">
+    <div
+      className={
+        "col-[1/2] row-[1/2] transition-all delay-700 duration-500 px-6 md:px-0 " +
+        (isRegister ? "opacity-0 z-[1]" : "z-[2]")
+      }
+    >
       <form
         className="flex items-center justify-center flex-col mb-2"
         onSubmit={formik.handleSubmit}

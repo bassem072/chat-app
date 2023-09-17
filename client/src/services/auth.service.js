@@ -3,27 +3,18 @@ import TokenService from "./token.service";
 
 const API_URL = "http://localhost:5000/api/";
 
-const register = async (email, password, name, bio, gender, birthday) => {
+const register = async (userData) => {
   return await api
-    .post(API_URL + "register", {
-      email,
-      password,
-      name,
-      bio,
-      gender,
-      birthday,
-    })
+    .post(API_URL + "register", userData)
     .then((response) => {
       if (response.data.accessToken) {
         TokenService.setUser(response.data);
-        console.log("User Added");
       }
       return response.data;
     });
 };
 
 const login = async (email, password, remember) => {
-  console.log(email, password, remember);
   return await api
     .post(API_URL + "login", {
       email,
@@ -32,8 +23,19 @@ const login = async (email, password, remember) => {
     })
     .then((response) => {
       if (response.data.accessToken) {
-        console.log("this is your data ", response.data.accessToken);
-        console.log(response.data);
+        TokenService.setUser(response.data);
+      }
+      return response.data;
+    });
+};
+
+const socialLogin = async (email, password, remember) => {
+  return await api
+    .post(API_URL + "social", {
+      email,
+    })
+    .then((response) => {
+      if (response.data.accessToken) {
         TokenService.setUser(response.data);
       }
       return response.data;
@@ -65,6 +67,7 @@ const getCurrentUser = () => {
 const authService = {
   register,
   login,
+  socialLogin,
   logout,
   getCurrentUser,
 };

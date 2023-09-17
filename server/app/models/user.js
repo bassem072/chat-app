@@ -17,6 +17,7 @@ const schema = new Schema(
     },
     bio: {
       type: String,
+      default: "Hello, I'm here.",
     },
     gender: {
       type: String,

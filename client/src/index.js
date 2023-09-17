@@ -2,6 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import './index.css';
 import App from './App';
@@ -11,13 +12,15 @@ import setupInterceptors from "./services/setupInterceptors";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <Router>
-        <App />
-      </Router>
-    </Provider>
-  </React.StrictMode>
+  <GoogleOAuthProvider clientId='584607999856-ld0vd3n2q9acoh7i03751dljt09h56cn.apps.googleusercontent.com'>
+    <React.StrictMode>
+      <Provider store={store}>
+        <Router>
+          <App />
+        </Router>
+      </Provider>
+    </React.StrictMode>
+  </GoogleOAuthProvider>
 );
 
 setupInterceptors(store);

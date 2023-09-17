@@ -23,47 +23,49 @@ export default function RegisterForm() {
   const dispatch = useDispatch();
   const location = useLocation();
   const { message } = useSelector((state) => state.message);
-  const { isLoading, user } = useSelector((state) => state.auth);
+  const { isLoading, isRegister, registerData } = useSelector(
+    (state) => state.auth
+  );
 
   useEffect(() => {
-    if (message) {
+    if (message && isRegister) {
       toast(message, {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }
     dispatch(clearMessage());
-  }, [dispatch, message]);
+  }, [dispatch, isRegister, message, registerData]);
 
   const formik = useFormik({
     initialValues: {
-      name: "",
-      email: "",
+      name: registerData.name ?? "",
+      email: registerData.email ?? "",
       password: "",
       repeatPassword: "",
-      day: current_day,
-      month: current_month + 1,
-      year: current_year,
-      gender: 0,
+      day: registerData.day ?? current_day,
+      month: registerData.month?? current_month + 1,
+      year: registerData.year ?? current_year,
+      gender: registerData.gender ?? 0,
     },
     validate,
     onSubmit: (values) => {
+      dispatch(setMessage(""));
       const g = ["male", "female"];
       let date = new Date(
-        values.year + "-" + (values.month + 1) + "-" + values.day
+        values.year + "-" + (+values.month + 1) + "-" + values.day
       );
-      dispatch(setMessage(""));
       const { name, email, password, gender } = values;
       const userData = {
         name,
         email,
         password,
         gender: g[gender],
-        birthday: date,
+        birthdate: date,
       };
+      console.log(userData);
       dispatch(register(userData))
         .unwrap()
         .then(() => {
-          console.log("Hi", location.state, user);
           if (location.state && location.state.prevRoute) {
             navigate(location.state.prevRoute);
           } else {
@@ -71,12 +73,17 @@ export default function RegisterForm() {
           }
         })
         .catch((err) => {
-          console.log("error", err);
+          console.log("error", err.message);
         });
     },
   });
   return (
-    <div className=" z-[1] col-[1/2] row-[1/2] opacity-0">
+    <div
+      className={
+        "col-[1/2] row-[1/2] transition-all delay-700 duration-500 " +
+        (isRegister ? "opacity-100 z-[2]" : "z-[1] opacity-0")
+      }
+    >
       <form
         className="flex items-center justify-center flex-col mb-2"
         onSubmit={formik.handleSubmit}
