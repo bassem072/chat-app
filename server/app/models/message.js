@@ -17,6 +17,7 @@ const schema = new Schema(
     messageType: {
       type: String,
       enum: ["text", "photo", "video", "file", "record"],
+      default: "text",
     },
     fileUrl: {
       type: String,

@@ -1,11 +1,26 @@
 export const pagination = (query) => {
-  const pag = {};
+  const page = {};
 
-  pag.sort[req.query.sort ?? "created_at"] =
+  page.sort[req.query.sort ?? "created_at"] =
     query.inc === "desc" ? "desc" : "asc";
-  pag.limit = query.limit ?? 10;
-  pag.page = query.page ?? 1;
-  pag.searchString = query.searchString ?? "";
+  if (query.limit) {
+    page.limit = query.limit;
+    page.page = query.page ?? 1;
+  }
 
-  return pag;
+  return page;
+};
+
+export const chatPagination = (query) => {
+  const page = {};
+
+  page.sort[req.query.sort ?? "updatedAt"] =
+    query.inc === "desc" ? "desc" : "asc";
+  if (query.limit) {
+    page.limit = query.limit;
+    page.page = query.page ?? 1;
+  }
+  page.searchString = query.searchString ?? "";
+
+  return page;
 };

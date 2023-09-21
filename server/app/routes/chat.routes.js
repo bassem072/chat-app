@@ -15,5 +15,5 @@ const chatRoutes = (app) => {
   app.get("/api/chat", [verifyToken]);
   
   app.post("/api/chat", [verifyToken, checkRequiredParams(['users']), checkUsers], store);
-  app.post("/api/chat", [verifyToken, checkRequiredParams(['name', 'users']), checkUsers], store);
+  app.post("/api/groupChat", [verifyToken, checkRequiredParams(['name', 'users']), checkUsers], store);
 };

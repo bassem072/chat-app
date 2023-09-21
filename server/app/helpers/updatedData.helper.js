@@ -19,3 +19,11 @@ export const updateUserData = (updateData) => {
 
   return data;
 };
+
+export const updateChatData = (updateData) => {
+  const data = {};
+
+  if (updateData.name) {
+    data.name = updateData.name;
+  }
+};
