@@ -1,7 +1,7 @@
-import { chatPagination } from "../helpers/pagination.helper";
-import Chat from "../models/chat";
-import Message from "../models/message";
-import { getUsers } from "../services/users.service";
+import { chatPagination } from "../helpers/pagination.helper.js";
+import Chat from "../models/chat.js";
+import Message from "../models/message.js";
+import { getUsers } from "../services/users.service.js";
 
 export const indexChats = async (req, res) => {
   const pagination = chatPagination(req.query ?? {});

@@ -1,6 +1,6 @@
-import { index, send, show } from "../controllers/message.controller";
-import { verifyToken } from "../middleware/authJwt.middleware";
-import { checkChat, checkMessage } from "../middleware/message.middleware";
+import { index, send, show } from "../controllers/message.controller.js";
+import { verifyToken } from "../middleware/authJwt.middleware.js";
+import { checkChat, checkMessage } from "../middleware/message.middleware.js";
 
 const messageRoutes = (app) => {
   app.use((req, res, next) => {
@@ -22,3 +22,5 @@ const messageRoutes = (app) => {
 
   app.get("/api/chats/:chatId/messages/:id", [verifyToken, checkChat], show);
 };
+
+export default messageRoutes;

@@ -55,3 +55,5 @@ const chatRoutes = (app) => {
     RemoveAdminFromGroup
   );
 };
+
+export default chatRoutes;

@@ -1,5 +1,5 @@
-import Chat from "../models/chat";
-import Message from "../models/message";
+import Chat from "../models/chat.js";
+import Message from "../models/message.js";
 
 export const index = (req, res) => {
   const { chatId } = req.params;

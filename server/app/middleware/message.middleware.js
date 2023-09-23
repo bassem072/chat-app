@@ -1,3 +1,5 @@
+import Chat from "../models/chat.js";
+
 export const checkChat = (req, res, next) => {
   const { chatId } = req.params;
 

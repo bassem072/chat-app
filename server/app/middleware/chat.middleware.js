@@ -1,5 +1,5 @@
-import User from "../models/user";
-import { checkRequiredParams } from "./existingParams.middleware";
+import User from "../models/user.js";
+import { checkRequiredParams } from "./existingParams.middleware.js";
 
 export const checkChat = (req, res, next) => {
   const body = req.body;
