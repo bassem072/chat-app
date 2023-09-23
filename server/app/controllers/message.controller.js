@@ -18,7 +18,7 @@ export const index = (req, res) => {
 
 export const send = (req, res) => {
   const body = req.body;
-  const { content, type, chatId } = body;
+  const { content, type = "text", chatId } = body;
   const data = { content, messageType: type, chatId, sender: req.userId };
 
   if (type !== "text") {

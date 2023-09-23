@@ -5,6 +5,8 @@ import cors from "cors";
 import cookieParser from 'cookie-parser';
 import dbConfig from "./db.js";
 import authRoutes from "./app/routes/auth.routes.js";
+import chatRoutes from "./app/routes/chat.routes.js";
+import messageRoutes from "./app/routes/message.routes.js";
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -14,6 +16,9 @@ app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(cookieParser());
 
 authRoutes(app);
+chatRoutes(app);
+messageRoutes(app);
+
 
 dbConfig(() => {
   app.listen(PORT, () => {

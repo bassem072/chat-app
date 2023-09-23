@@ -86,14 +86,17 @@ export const indexGroupChats = async (req, res) => {
 };
 
 export const store = (req, res) => {
-  const { name, users } = req.body;
+  const body = req.body;
 
   const chatData = {
-    users: [req.userId, ...users],
-    name,
-    isGroupChat: true,
-    groupAdmins: [req.userId],
+    users: body.users,
   };
+
+  if (body.isGroupChat) {
+    chatData.isGroupChat = true;
+    chatData.name = body.name;
+    chatData.groupAdmins = [req.userId];
+  }
 
   const chat = new Chat(chatData);
 
@@ -122,9 +125,9 @@ export const store = (req, res) => {
 };
 
 export const show = (req, res) => {
-  const { id } = req.params.id;
+  const { id } = req.params;
 
-  Chat.findById(id)
+  Chat.findOne({ _id: id, users: req.userId })
     .populate("users", "-password")
     .populate("groupAdmins", "-password")
     .populate("latestMessage")
@@ -137,9 +140,13 @@ export const show = (req, res) => {
 };
 
 export const update = (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
   const { name } = req.body;
-  Chat.findByIdAndUpdate(id, { name }, { new: true })
+  Chat.findOneAndUpdate(
+    { _id: id, groupAdmins: req.userId, isGroupChat: true },
+    { name },
+    { new: true }
+  )
     .populate("users", "-password")
     .populate("groupAdmins", "-password")
     .populate("latestMessage")
@@ -152,35 +159,92 @@ export const update = (req, res) => {
 };
 
 export const destroy = (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
 
-  Message.deleteMany({ chatId: id })
-    .then((res) => {
-      Chat.findById(id)
-        .then((chat) => {
-          return res.status(200).json(chat);
-        })
-        .catch((err) => {
-          return res
-            .status(404)
-            .json({ message: "can_not_delete_chat", error: err });
-        });
+  Chat.findById(id)
+    .populate("users", "-password")
+    .populate("groupAdmins", "-password")
+    .populate("latestMessage")
+    .then((chat) => {
+      const admins = chat.groupAdmins.map((user) => user._id);
+
+      if (admins.includes(req.userId)) {
+        Message.deleteMany({ chatId: id })
+          .then((messages) => {
+            chat
+              .deleteOne()
+              .then((chat) => {
+                return res.status(200).json({
+                  message: "delete_chat_successfully",
+                  chat,
+                  messages,
+                });
+              })
+              .catch((err) => {
+                return res
+                  .status(404)
+                  .json({ message: "can_not_delete_chat", err });
+              });
+          })
+          .catch((err) => {
+            return res
+              .status(404)
+              .json({ message: "can_not_delete_chat", err });
+          });
+      } else {
+        return res.status(404).json({ message: "can_not_delete_chat", err });
+      }
     })
     .catch((err) => {
       return res
-        .status(404)
-        .json({ message: "can_not_delete_chat", error: err });
+        .status(401)
+        .json({ message: "you_do_not_have_access_to_delete_chat", err });
+    });
+};
+
+export const clear = (req, res) => {
+  const { id } = req.params;
+
+  Chat.findById(id)
+    .populate("users", "-password")
+    .populate("groupAdmins", "-password")
+    .populate("latestMessage")
+    .then((chat) => {
+      const admins = chat.groupAdmins.map((user) => user._id);
+
+      if (admins.includes(req.userId)) {
+        Message.deleteMany({ chatId: id })
+          .then((messages) => {
+            return res
+              .status(200)
+              .json({ message: "clear_chat_successfully", chat, messages });
+          })
+          .catch((err) => {
+            return res.status(404).json({ message: "can_not_clear_chat", err });
+          });
+      } else {
+        return res.status(404).json({ message: "can_not_clear_chat", err });
+      }
+    })
+    .catch((err) => {
+      return res
+        .status(401)
+        .json({ message: "you_do_not_have_access_to_clear_chat", err });
     });
 };
 
 export const addUserToGroup = (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   const { userId } = req.body;
 
-  Chat.findByIdAndUpdate(
-    id,
+  Chat.findOneAndUpdate(
     {
-      $push: { users: userId },
+      _id: id,
+      isGroupChat: true,
+      groupAdmins: req.userId,
+    },
+    {
+      $addToSet: { users: userId },
     },
     {
       new: true,
@@ -198,13 +262,70 @@ export const addUserToGroup = (req, res) => {
 };
 
 export const RemoveUserFromGroup = (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   const { userId } = req.body;
 
-  Chat.findByIdAndUpdate(
-    id,
+  Chat.findOneAndUpdate(
+    { _id: id, isGroupChat: true, groupAdmins: req.userId },
     {
-      $pull: { users: userId },
+      $pull: { groupAdmins: userId, users: userId },
+    },
+    {
+      new: true,
+    }
+  )
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password")
+    .populate("latestMessage")
+    .then((chat) => {
+      return res.status(200).json({ message: "user_removed", chat });
+    })
+    .catch((err) => {
+      return res.status(400).json({ message: "can_not_remove_user", err });
+    });
+};
+
+export const addAdminToGroup = (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  Chat.findOneAndUpdate(
+    {
+      _id: id,
+      isGroupChat: true,
+      groupAdmins: req.userId,
+      users: userId,
+    },
+    {
+      $addToSet: { groupAdmins: userId },
+    },
+    {
+      new: true,
+    }
+  )
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password")
+    .populate("latestMessage")
+    .then((chat) => {
+      return res.status(200).json({ message: "user_added", chat });
+    })
+    .catch((err) => {
+      return res.status(400).json({ message: "can_not_add_user", err });
+    });
+};
+
+export const RemoveAdminFromGroup = (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  Chat.findOneAndUpdate(
+    {
+      _id: id,
+      isGroupChat: true,
+      $and: [{ groupAdmins: req.userId }, { groupAdmins: userId }],
+    },
+    {
+      $pull: { groupAdmins: userId },
     },
     {
       new: true,

@@ -1,7 +1,19 @@
-import { store } from "../controllers/chat.controller.js";
+import {
+  RemoveAdminFromGroup,
+  RemoveUserFromGroup,
+  addAdminToGroup,
+  addUserToGroup,
+  clear,
+  destroy,
+  indexChats,
+  indexGroupChats,
+  show,
+  store,
+  update,
+} from "../controllers/chat.controller.js";
 import { verifyToken } from "../middleware/authJwt.middleware.js";
+import { checkChat, checkUser } from "../middleware/chat.middleware.js";
 import { checkRequiredParams } from "../middleware/existingParams.middleware.js";
-import { checkUsers } from "../middleware/user.middleware.js";
 
 const chatRoutes = (app) => {
   app.use(function (req, res, next) {
@@ -12,8 +24,34 @@ const chatRoutes = (app) => {
     next();
   });
 
-  app.get("/api/chat", [verifyToken]);
-  
-  app.post("/api/chat", [verifyToken, checkRequiredParams(['users']), checkUsers], store);
-  app.post("/api/groupChat", [verifyToken, checkRequiredParams(['name', 'users']), checkUsers], store);
+  app.get("/api/chats", [verifyToken], indexChats);
+  app.get("/api/groups", [verifyToken], indexGroupChats);
+
+  app.post("/api/chats", [verifyToken, checkChat], store);
+
+  app.get("/api/chats/:id", [verifyToken], show);
+  app.put(
+    "/api/chats/:id",
+    [verifyToken, checkRequiredParams(["name"])],
+    update
+  );
+  app.delete("/api/chats/:id", [verifyToken], destroy);
+  app.delete("/api/chats/:id/clear", [verifyToken], clear);
+
+  app.post("/api/chats/:id/add_user", [verifyToken, checkUser], addUserToGroup);
+  app.post(
+    "/api/chats/:id/remove_user",
+    [verifyToken, checkUser],
+    RemoveUserFromGroup
+  );
+  app.post(
+    "/api/chats/:id/add_admin",
+    [verifyToken, checkUser],
+    addAdminToGroup
+  );
+  app.post(
+    "/api/chats/:id/remove_admin",
+    [verifyToken, checkUser],
+    RemoveAdminFromGroup
+  );
 };
